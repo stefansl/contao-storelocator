@@ -85,7 +85,7 @@ class ModuleStoreLocatorDetails extends Module {
         }
 
         // Set page title
-        $objPage->title = $objStore->name;
+        $objPage->title = $objStore->name . ' - ' . $objPage->title;
 
         // get image
         if( $objStore->singleSRC ) {

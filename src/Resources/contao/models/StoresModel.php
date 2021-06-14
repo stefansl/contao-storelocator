@@ -17,8 +17,34 @@ namespace numero2\StoreLocator;
 
 use Contao\Database;
 use Contao\Model;
+use Contao\Model\Collection;
 
-
+/**
+ * Reads stores.
+ *
+ * @property int    $id
+ * @property int    $tstamp
+ * @property string $name
+ * @property string $alias
+ * @property string $email
+ * @property string $url
+ * @property string $phone
+ * @property string $fax
+ * @property string $street
+ * @property string $postal
+ * @property string $city
+ * @property string $country
+ * @property string $opening_times
+ * @property string $longitude
+ * @property string $latitude
+ * @property bool $addImage
+ * @property string $multiSRC
+ * @property string $orderSRC
+ * @property bool    $published
+ * @property string $highlight
+ *
+ * @method static Collection|StoresModel[]|null findAll(array $opt = array())
+ */
 class StoresModel extends Model {
 
 
@@ -36,13 +62,14 @@ class StoresModel extends Model {
      * @param integer $longitude
      * @param integer $distance
      * @param integer $limit
-     * @param array $categories
-     * @param string $filter
-     * @param string $order
+     * @param array|null $categories
+     * @param string|null $filter
+     * @param string|null $order
      *
-     * @return Contao\Collection|numero2\StoreLocator\StoresModel|null
+     * @return Collection
      */
-    public static function searchNearby( $latitude, $longitude, $distance=0, $limit=0, ?array $categories=NULL, ?string $filter=NULL, ?string $order=NULL) {
+    public static function searchNearby(int $latitude, int $longitude, int $distance=0, int $limit=0, ?array $categories=NULL, ?string $filter=NULL, ?string $order=NULL): Collection
+    {
 
         $objStores = Database::getInstance()->prepare("
             SELECT
@@ -55,9 +82,9 @@ class StoresModel extends Model {
                 AND latitude != ''
                 AND longitude != ''
                 ".($filter? "AND ".$filter:"")."
-            ".(($distance>0) ? "HAVING distance < {$distance} ": '')."
+            ".(($distance>0) ? "HAVING distance < $distance ": '')."
             ORDER BY ".($order?$order.", ":"")."distance ASC, highlight DESC
-            ".(($limit>0) ? "LIMIT {$limit} ": '')."
+            ".(($limit>0) ? "LIMIT $limit ": '')."
         ")->execute(
             $latitude
         ,   $latitude
@@ -73,13 +100,14 @@ class StoresModel extends Model {
      *
      * @param string $country
      * @param integer $limit
-     * @param array $categories
-     * @param string $filter
-     * @param string $order
+     * @param array|null $categories
+     * @param string|null $filter
+     * @param string|null $order
      *
-     * @return Contao\Collection|numero2\StoreLocator\StoresModel|null
+     * @return Collection
      */
-    public static function searchCountry( string $country, $limit=0, ?array $categories=NULL, ?string $filter=NULL, ?string $order=NULL ) {
+    public static function searchCountry(string $country, int $limit=0, ?array $categories=NULL, ?string $filter=NULL, ?string $order=NULL ): Collection
+    {
 
         $objStores = Database::getInstance()->prepare("
             SELECT
@@ -88,10 +116,10 @@ class StoresModel extends Model {
             WHERE
                 published='1'
                 AND pid IN(".implode(',',$categories).")
-                ".(($country) ? "AND country = '{$country}' ": '')."
+                ".(($country) ? "AND country = '$country' ": '')."
                 ".($filter? "AND ".$filter:"")."
             ORDER BY ".($order?$order.", ":"")."highlight DESC
-            ".(($limit>0) ? "LIMIT {$limit} ": '')."
+            ".(($limit>0) ? "LIMIT $limit ": '')."
         ")->execute();
 
         return self::createCollectionFromDbResult($objStores, self::$strTable);
@@ -106,12 +134,13 @@ class StoresModel extends Model {
      * @param integer $formLat
      * @param integer $toLat
      * @param integer $limit
-     * @param array $categories
-     * @param string $filter
+     * @param array|null $categories
+     * @param string|null $filter
      *
-     * @return Contao\Collection|numero2\StoreLocator\StoresModel|null
+     * @return Collection
      */
-    public static function searchBetweenCoords( $formLng, $toLng, $formLat, $toLat, $limit=0, ?array $categories=NULL, ?string $filter=NULL ) {
+    public static function searchBetweenCoords(int $formLng, int $toLng, int $formLat, int $toLat, int $limit=0, ?array $categories=NULL, ?string $filter=NULL ): Collection
+    {
 
         $objStores = Database::getInstance()->prepare("
             SELECT
@@ -125,8 +154,8 @@ class StoresModel extends Model {
                 AND ? < latitude AND latitude < ?
                 ".($categories? "AND pid IN(".implode(',',$categories).")":"")."
                 ".($filter? "AND ".$filter:"")."
-            ".(($limit>0) ? "LIMIT {$limit} ": 'LIMIT 500')."
-        ")->execute(floatval($formLng), floatval($toLng), floatval($formLat), floatval($toLat));
+            ".(($limit>0) ? "LIMIT $limit ": 'LIMIT 500')."
+        ")->execute((float)$formLng, (float)$toLng, (float)$formLat, (float)$toLat);
 
         return self::createCollectionFromDbResult($objStores, self::$strTable);
     }
